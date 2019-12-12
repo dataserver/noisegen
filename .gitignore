@@ -81,7 +81,7 @@ venv/
 run.bat
 DONT_UPLOAD.txt
 
-audioset/*
-!audioset/DEMO/*
+audioset/
+!audioset/DEMO/
 cli.py
 
