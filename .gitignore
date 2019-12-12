@@ -82,7 +82,7 @@ run.bat
 DONT_UPLOAD.txt
 
 audioset/
-!audioset/DEMO/
-!audioset/DEMO/*
+!/audioset/DEMO/
+!/audioset/DEMO/*
 cli.py
 
