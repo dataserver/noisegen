@@ -1,5 +1,6 @@
 # noisegen
-It's an audio mixer 10 audio files playing in an infinite loop.  
+Python program (GUI/PyQt5)
+It's just an audio mixer of 10 audio files playing in an infinite loop.  
 I use to create white noise because mixing 10 different audio can only create noises :D
 
 
