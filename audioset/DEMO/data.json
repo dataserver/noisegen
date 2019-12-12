@@ -1,0 +1,54 @@
+{
+    "title": "DEMO Rain in the Forest",
+    "files": [{
+            "channel": 0,
+            "title": "thunderstorm",
+            "file": "0.ogg"
+        },
+        {
+            "channel": 1,
+            "title": "muffled thunderstorm",
+            "file": "1.ogg"
+        },
+        {
+            "channel": 2,
+            "title": "Bubbling",
+            "file": "2.ogg"
+        },
+        {
+            "channel": 3,
+            "title": "bird",
+            "file": "3.ogg"
+        },
+        {
+            "channel": 4,
+            "title": "bird",
+            "file": "4.ogg"
+        },
+        {
+            "channel": 5,
+            "title": "rain and thunder",
+            "file": "5.ogg"
+        },
+        {
+            "channel": 6,
+            "title": "Rain downpour",
+            "file": "6.ogg"
+        },
+        {
+            "channel": 7,
+            "title": "Rain downpour",
+            "file": "7.ogg"
+        },
+        {
+            "channel": 8,
+            "title": "Umbrella",
+            "file": "umbrella.ogg"
+        },
+        {
+            "channel": 9,
+            "title": "thunder",
+            "file": "9.ogg"
+        }
+    ]
+}
