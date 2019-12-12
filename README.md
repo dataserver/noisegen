@@ -5,7 +5,7 @@ I use to create white noise because mixing 10 different audio can only create no
 
 # screenshot
 
-[GUI Screenshot](https://github.com/dataserver/noisegen/blob/master/screenshot.png?raw=true "Gui screenshot")
+![GUI Screenshot](https://github.com/dataserver/noisegen/blob/master/screenshot.png?raw=true "Gui screenshot")
 
 # config.ini
 ```
