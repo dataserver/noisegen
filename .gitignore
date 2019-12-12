@@ -76,7 +76,5 @@ yarn-error.log*
 # ignore virtual env data
 _ignore/
 venv/
-
 run.bat
 
-cli.py
