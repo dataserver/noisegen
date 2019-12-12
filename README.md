@@ -38,4 +38,3 @@ Check data.json file inside the DEMO folder.
 
 # Volume control
 - Use a logarithmic scale
-
