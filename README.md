@@ -15,6 +15,8 @@ volume = 40
 auto_play = 1
 ```
 
+The program will scan the collection_dir for subdirectories and try to read 'data.json' file inside.
+
 # data.json
 Check data.json file inside the DEMO folder.
 - supported [audio formats](http://www.pygame.org/docs/ref/mixer.html#pygame.mixer.Sound)

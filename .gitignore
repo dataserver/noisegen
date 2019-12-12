@@ -74,12 +74,9 @@ yarn-error.log*
 ##############################################################
 
 # ignore virtual env data
-DONT_UPLOAD/
 _ignore/
 venv/
 
 run.bat
-DONT_UPLOAD.txt
 
 cli.py
-

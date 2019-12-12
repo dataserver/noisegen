@@ -87,14 +87,19 @@ class MainWindow(QtWidgets.QMainWindow):
         list_to_be_sorted = []
         dirs = next(os.walk('audioset'))[1]
         for dir_name in dirs:
-            with open(self.cfg['collection_dir'] + '/' + dir_name + '/data.json', 'r') as f:
-                parsed_json = json.load(f)
+            try:    
+                with open(self.cfg['collection_dir'] + '/' + dir_name + '/data.json', 'r') as f:
+                    parsed_json = json.load(f)
 
-            list_to_be_sorted.append({
-                'dir': dir_name,
-                'title': parsed_json['title'],
-            })
-        self.albums_list = sorted(list_to_be_sorted, key=lambda item: item['title'])
+                list_to_be_sorted.append({
+                    'dir': dir_name,
+                    'title': parsed_json['title'],
+                })
+            except IOError:
+                print('data.json not found in dir: ' + dir_name)
+            
+            self.albums_list = sorted(list_to_be_sorted, key=lambda item: item['title'])
+
 
     # COMBOBOX
     def combobox_populate(self):
@@ -143,23 +148,28 @@ class MainWindow(QtWidgets.QMainWindow):
         pygame.mixer.init(frequency=22050, size=-16, channels=4)
         pygame.mixer.set_num_channels(10)
         self.player_status = "play"
+        parsed_json = None
+        try:   
+            with open(self.cfg['collection_dir'] + '/' + self.album_dir + '/data.json', 'r') as f:
+                parsed_json = json.load(f)
+        except IOError:
+            print('data.json not found in dir: ' + self.album_dir)
 
-        with open(self.cfg['collection_dir'] + '/' + self.album_dir + '/data.json', 'r') as f:
-            parsed_json = json.load(f)
-
-        self.setWindowTitle(parsed_json['title'] + ' - ' + self.title)
-
-        for info in parsed_json['files']:
-            # print(info)
-            channel = int(info['channel'])
-            slider = getattr(self, 'vertical_slider_%da' % channel)
-            slider.setToolTip(info['title'])
-            pygame.mixer.Channel(channel).play(pygame.mixer.Sound(
-                self.cfg['collection_dir'] + '/' + self.album_dir + '/' + info['file']), loops=-1)
-            slider = getattr(self, 'vertical_slider_%da' % channel)
-            position = slider.value()
-            pygame.mixer.Channel(channel).set_volume(
-                self.position_to_volume(position))
+        if parsed_json is not None:
+            self.setWindowTitle(parsed_json['title'] + ' - ' + self.title)
+            for info in parsed_json['files']:
+                channel = int(info['channel'])
+                slider = getattr(self, 'vertical_slider_%da' % channel)
+                slider.setToolTip(info['title'])
+                if os.path.isfile(self.cfg['collection_dir'] + '/' + self.album_dir + '/' + info['file']):
+                    pygame.mixer.Channel(channel).play(pygame.mixer.Sound(
+                        self.cfg['collection_dir'] + '/' + self.album_dir + '/' + info['file']), loops=-1)
+                    position = slider.value()
+                    pygame.mixer.Channel(channel).set_volume(
+                        self.position_to_volume(position))
+                else:
+                    slider.setDisabled(True)
+                    print ("File not exist: " + self.album_dir + '/' + info['file'])
 
     # SLIDERS
     def change_slider(self, position, channel):
