@@ -3,6 +3,9 @@ Python program (GUI/PyQt5)
 It's just an audio mixer of 10 audio files playing in an infinite loop.  
 I use to create white noise because mixing 10 different audio can only create noises :D
 
+# screenshot
+
+[GUI Screenshot](https://github.com/dataserver/noisegen/blob/master/screenshot.png?raw=true "Gui screenshot")
 
 # config.ini
 ```
