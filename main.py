@@ -1,4 +1,6 @@
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PySide2 import QtCore, QtGui, QtWidgets, QtUiTools
+from PySide2.QtUiTools import QUiLoader
+from PySide2.QtCore import QFile, QObject
 
 import os
 import sys
@@ -15,7 +17,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        uic.loadUi('gui.ui', self)
+        ui_file = QtCore.QFile('gui.ui')
+        ui_file.open(QFile.ReadOnly)
+        loader = QUiLoader()
+        self.ui = loader.load(ui_file)
+        ui_file.close()
+
         config = configparser.ConfigParser()
         config.read('config.ini')
         self.cfg = config['DEFAULT']
@@ -31,48 +38,48 @@ class MainWindow(QtWidgets.QMainWindow):
         self.player_status = None
         self.albums_list = []
 
-        self.setWindowTitle(self.title)
-        self.setWindowIcon(QtGui.QIcon('resources/icon.svg'))
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.ui.setWindowTitle(self.title)
+        self.ui.setWindowIcon(QtGui.QIcon('resources/icon.svg'))
+        self.ui.setGeometry(self.left, self.top, self.width, self.height)
 
         self.__center()
         self.sliders_reset()
         self.disable_sliders()
 
-        self.vertical_slider_0a.valueChanged.connect(
+        self.ui.vertical_slider_0a.valueChanged.connect(
             lambda position, channel=0: self.change_slider(position, channel))
-        self.vertical_slider_1a.valueChanged.connect(
+        self.ui.vertical_slider_1a.valueChanged.connect(
             lambda position, channel=1: self.change_slider(position, channel))
-        self.vertical_slider_2a.valueChanged.connect(
+        self.ui.vertical_slider_2a.valueChanged.connect(
             lambda position, channel=2: self.change_slider(position, channel))
-        self.vertical_slider_3a.valueChanged.connect(
+        self.ui.vertical_slider_3a.valueChanged.connect(
             lambda position, channel=3: self.change_slider(position, channel))
-        self.vertical_slider_4a.valueChanged.connect(
+        self.ui.vertical_slider_4a.valueChanged.connect(
             lambda position, channel=4: self.change_slider(position, channel))
-        self.vertical_slider_5a.valueChanged.connect(
+        self.ui.vertical_slider_5a.valueChanged.connect(
             lambda position, channel=5: self.change_slider(position, channel))
-        self.vertical_slider_6a.valueChanged.connect(
+        self.ui.vertical_slider_6a.valueChanged.connect(
             lambda position, channel=6: self.change_slider(position, channel))
-        self.vertical_slider_7a.valueChanged.connect(
+        self.ui.vertical_slider_7a.valueChanged.connect(
             lambda position, channel=7: self.change_slider(position, channel))
-        self.vertical_slider_8a.valueChanged.connect(
+        self.ui.vertical_slider_8a.valueChanged.connect(
             lambda position, channel=8: self.change_slider(position, channel))
-        self.vertical_slider_9a.valueChanged.connect(
+        self.ui.vertical_slider_9a.valueChanged.connect(
             lambda position, channel=9: self.change_slider(position, channel))
 
         self.combobox_populate()
 
-        self.btn_play.clicked.connect(self.player_play)
-        self.btn_pause.clicked.connect(self.player_pause)
-        self.btn_stop.clicked.connect(self.player_stop)
+        self.ui.btn_play.clicked.connect(self.player_play)
+        self.ui.btn_pause.clicked.connect(self.player_pause)
+        self.ui.btn_stop.clicked.connect(self.player_stop)
 
-        self.btn_reset.clicked.connect(self.sliders_reset)
-        self.btn_all_up_volume.clicked.connect(self.sliders_up)
-        self.btn_all_down_volume.clicked.connect(self.sliders_down)
-        self.btn_random.clicked.connect(self.sliders_random)
-        self.select_album.currentIndexChanged.connect(self.combobox_on_change)
+        self.ui.btn_reset.clicked.connect(self.sliders_reset)
+        self.ui.btn_all_up_volume.clicked.connect(self.sliders_up)
+        self.ui.btn_all_down_volume.clicked.connect(self.sliders_down)
+        self.ui.btn_random.clicked.connect(self.sliders_random)
+        self.ui.select_album.currentIndexChanged.connect(self.combobox_on_change)
 
-        self.show()
+        self.ui.show()
 
         if self.auto_play == 1:
             self.player_play()
@@ -105,18 +112,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def combobox_populate(self):
         self.build_albums_list()
         for album in self.albums_list:
-            self.select_album.addItem(album['title'])
+            self.ui.select_album.addItem(album['title'])
 
         if self.album_dir is not None:
             album = self.search(self.albums_list, 'dir', self.album_dir)
             album_title = album['title']
             if album_title is not None:
-                index = self.select_album.findText(album_title, QtCore.Qt.MatchFixedString)
+                index = self.ui.select_album.findText(album_title, QtCore.Qt.MatchFixedString)
                 if index >= 0:
-                    self.select_album.setCurrentIndex(index)
+                    self.ui.select_album.setCurrentIndex(index)
 
     def combobox_on_change(self):
-        selected = self.select_album.currentText()
+        selected = self.ui.select_album.currentText()
         album = self.search(self.albums_list, 'title', selected)
         self.album_dir = album['dir']
 
@@ -128,17 +135,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def player_pause(self):
         if self.player_status is not None:
             if self.player_status == "play":
-                self.btn_pause.setText("UnPause")
+                self.ui.btn_pause.setText("UnPause")
                 self.player_status = "pause"
                 pygame.mixer.pause()
             else:
                 pygame.mixer.unpause()
-                self.btn_pause.setText("Pause")
+                self.ui.btn_pause.setText("Pause")
                 self.player_status = "play"
 
     def player_stop(self):
         pygame.mixer.stop()
-        self.btn_pause.setText("Pause")
+        self.ui.btn_pause.setText("Pause")
         self.player_status = None
         self.disable_sliders()
 
@@ -156,10 +163,10 @@ class MainWindow(QtWidgets.QMainWindow):
             print('data.json not found in dir: ' + self.album_dir)
 
         if parsed_json is not None:
-            self.setWindowTitle(parsed_json['title'] + ' - ' + self.title)
+            self.ui.setWindowTitle(parsed_json['title'] + ' - ' + self.title)
             for info in parsed_json['files']:
                 channel = int(info['channel'])
-                slider = getattr(self, 'vertical_slider_%da' % channel)
+                slider = getattr(self.ui, 'vertical_slider_%da' % channel)
                 slider.setToolTip(info['title'])
                 if os.path.isfile(self.cfg['collection_dir'] + '/' + self.album_dir + '/' + info['file']):
                     pygame.mixer.Channel(channel).play(pygame.mixer.Sound(
@@ -181,18 +188,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def disable_sliders(self):
         for channel in range(0, 10):
-            slider = getattr(self, 'vertical_slider_%da' % channel)
+            slider = getattr(self.ui, 'vertical_slider_%da' % channel)
             slider.setDisabled(True)
 
     def enable_sliders(self):
         for channel in range(0, 10):
-            slider = getattr(self, 'vertical_slider_%da' % channel)
+            slider = getattr(self.ui, 'vertical_slider_%da' % channel)
             slider.setDisabled(False)
 
     def sliders_up(self):
         if self.player_status is not None:
             for channel in range(0, 10):
-                slider = getattr(self, 'vertical_slider_%da' % channel)
+                slider = getattr(self.ui, 'vertical_slider_%da' % channel)
                 position = slider.value() + 5
                 slider.setValue(position)
                 pygame.mixer.Channel(channel).set_volume(
@@ -201,7 +208,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def sliders_down(self):
         if self.player_status is not None:
             for channel in range(0, 10):
-                slider = getattr(self, 'vertical_slider_%da' % channel)
+                slider = getattr(self.ui, 'vertical_slider_%da' % channel)
                 position = slider.value() - 5
                 if position <= 0:
                     slider.setValue(0)
@@ -214,7 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def sliders_random(self):
         if self.player_status is not None:
             for channel in range(0, 10):
-                slider = getattr(self, 'vertical_slider_%da' % channel)
+                slider = getattr(self.ui, 'vertical_slider_%da' % channel)
                 position = random.randrange(0, 60, 1)
                 slider.setValue(position)
                 pygame.mixer.Channel(channel).set_volume(
@@ -223,7 +230,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def sliders_reset(self):
         for channel in range(0, 10):
             position = self.slider_start_position
-            slider = getattr(self, 'vertical_slider_%da' % channel)
+            slider = getattr(self.ui, 'vertical_slider_%da' % channel)
             slider.setValue(position)
             if self.player_status is not None:
                 pygame.mixer.Channel(channel).set_volume(
@@ -267,7 +274,6 @@ class MainWindow(QtWidgets.QMainWindow):
         scale = (max_val-min_val) / (max_pos-min_pos)
         pos = min_pos + (math.log(conv_volume) - min_val) / scale
         return int(pos)
-
 
 
 if __name__ == '__main__':

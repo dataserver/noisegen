@@ -77,4 +77,5 @@ yarn-error.log*
 _ignore/
 venv/
 run.bat
-
+audioset/
+!audioset/DEMO
