@@ -7,6 +7,13 @@ I use to create white noise because mixing 10 different audio can only create no
 
 ![GUI Screenshot](https://github.com/dataserver/noisegen/blob/master/screenshot.png?raw=true "Gui screenshot")
 
+# installation
+pip install -r requirements.txt
+
+# running
+python app.py
+
+
 # config.ini
 ```
 collection_dir = ./audioset/
