@@ -79,5 +79,4 @@ venv/
 run.bat
 audioset/
 !audioset/DEMO
-vscode/
-
+.vscode/
