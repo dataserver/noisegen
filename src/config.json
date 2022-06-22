@@ -1,0 +1,12 @@
+{
+    "collection_folder": "audioset/",
+    "default_album_folder": "DEMO",
+    "default_channel_volume": 40,
+    "auto_play": true,
+    
+    "svg_path": "src/svg/",
+    "svg_btn_pause": "btn_pause.svg",
+    "svg_btn_play": "btn_play.svg",
+    "svg_btn_stop": "btn_stop.svg",
+    "svg_app_icon": "icon.svg"
+}

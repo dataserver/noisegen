@@ -74,9 +74,16 @@ yarn-error.log*
 ##############################################################
 
 # ignore virtual env data
-_ignore/
-venv/
-run.bat
-audioset/
-!audioset/DEMO
+.ignore/
+.venv/
 .vscode/
+audioset/
+__pycache__/
+!audioset/DEMO
+run.bat
+app.spec
+app1.spec
+.style.yapf
+workspace.code-workspace
+test.py
+__app.py

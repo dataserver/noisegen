@@ -1,7 +1,8 @@
 # noisegen
 Python program (GUI/PySide2)
 It's just an audio mixer of 10 audio files playing in an infinite loop.  
-I use to create white noise because mixing 10 different audio can only create noises :D
+I use it to create white noise by mixing 10 different audio channels, each channel with unique
+audio sound :D
 
 # screenshot
 
@@ -9,20 +10,30 @@ I use to create white noise because mixing 10 different audio can only create no
 
 # installation
 pip install -r requirements.txt
+poetry install
 
 # running
-python app.py
+python main.py
 
 
-# config.ini
+# config.json
 ```
-collection_dir = ./audioset/
-album_dir = DEMO
-volume = 40
-auto_play = 1
+{
+    "collection_folder": "audioset/",
+    "default_album_folder": "DEMO",
+    "default_channel_volume": 40,
+    "auto_play": true
+
+    "svg_path": "src/svg/",
+    "svg_btn_pause": "btn_pause.svg",
+    "svg_btn_play": "btn_play.svg",
+    "svg_btn_stop": "btn_stop.svg",
+    "svg_app_icon": "icon.svg"
+}
 ```
 
-The program will scan the collection_dir for subdirectories and try to read 'data.json' file inside.
+The program will scan the collection_folder for folders and try to read 'data.json' file inside.
+No need to edit any svg_* configuration.
 
 # data.json
 Check data.json file inside the DEMO folder.
@@ -40,6 +51,7 @@ Check data.json file inside the DEMO folder.
             "title": "muffled thunderstorm",
             "file": "1.ogg"
         },
+        ...
 ...
 ```
 
