@@ -2,6 +2,7 @@ import json
 import math
 import os
 import sys
+from pathlib import Path
 from random import randrange
 from typing import Literal
 
@@ -24,12 +25,18 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__(parent)
 
         self.cfg = read_config(f"src/config.json")
-        ui_file = QtCore.QFile(f"src/gui.ui")
-        ui_file.open(QtCore.QFile.ReadOnly)
+        ui_file_name = "src/gui.ui"
+        ui_file = QtCore.QFile(ui_file_name)
+        if not ui_file.open(QtCore.QIODevice.ReadOnly):
+            print(f"Cannot open {ui_file_name}: {ui_file.errorString()}")
+            sys.exit(-1)
         loader = QUiLoader()
-        self.ui = loader.load(ui_file)
+        window = loader.load(ui_file)
         ui_file.close()
-
+        if not window:
+            print(loader.errorString())
+            sys.exit(-1)
+        self.ui = window
         self.current_folder = self.cfg.default_album_folder
         self.slider_start_position = self.cfg.default_channel_volume
         self.player_status = None
