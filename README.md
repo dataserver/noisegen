@@ -10,7 +10,7 @@ audio sound :D
 
 # installation
 pip install -r requirements.txt  
-
+or  
 poetry install
 
 # running
