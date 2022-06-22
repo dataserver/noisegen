@@ -24,7 +24,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.cfg = read_config(f"src/config.json")
+        self.cfg = read_config("src/config.json")
         ui_file_name = "src/gui.ui"
         ui_file = QtCore.QFile(ui_file_name)
         if not ui_file.open(QtCore.QIODevice.ReadOnly):
