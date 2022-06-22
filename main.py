@@ -10,7 +10,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QMessageBox
 
 from src.config import read_config
-from src.dataclasses import AudioFileData, AudioSetData, PlayerStatus, WindowProp
+from src.data import AudioFileData, AudioSetData, PlayerStatus, WindowProp
 
 # must be set before IMPORT
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
