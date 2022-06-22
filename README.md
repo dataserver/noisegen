@@ -9,7 +9,8 @@ audio sound :D
 ![GUI Screenshot](https://github.com/dataserver/noisegen/blob/master/screenshot.png?raw=true "Gui screenshot")
 
 # installation
-pip install -r requirements.txt
+pip install -r requirements.txt  
+
 poetry install
 
 # running
