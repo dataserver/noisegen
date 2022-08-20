@@ -384,8 +384,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     if item.folder == keyword:
                         return item
             else:
-                return None
-            # raise NameError("Error")
+                raise NameError("Error")
         except NameError:
             print(f'used prop name "{name}" not allowed')
             exit()
