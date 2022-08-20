@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from random import randrange
-from typing import Literal, Optional
+
+# from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import List, Union
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
@@ -33,17 +35,10 @@ class Config:
     auto_play: bool
 
 
-def read_config(config_file: str) -> Config:
-    with open(config_file) as file:
+def read_config(file_path: Path) -> Config:
+    with open(file_path) as file:
         data = json.load(file)
         return Config(**data)
-
-
-@dataclass
-class AudioSetData:
-    title: str
-    dir: str
-    files: Optional[list]
 
 
 @dataclass
@@ -54,8 +49,15 @@ class AudioFileData:
 
 
 @dataclass
+class AudioSetData:
+    title: str
+    folder: str
+    files: List[AudioFileData]
+
+
+@dataclass
 class PlayerStatus(Enum):
-    """Player status"""
+    """Audio Player status"""
 
     PLAYING = auto()
     STOPPED = auto()
@@ -77,8 +79,8 @@ class WindowProp:
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.cfg = read_config(os.path.join(BASE_PATH, "config.json"))
-        ui_file_name = os.path.join(BASE_PATH, "resources", "gui.ui")
+        self.cfg = read_config(Path(BASE_PATH, "config.json"))
+        ui_file_name = str(Path(BASE_PATH, "resources", "gui.ui"))
         ui_file = QtCore.QFile(ui_file_name)
         if not ui_file.open(QtCore.QIODevice.ReadOnly):
             print(f"Cannot open {ui_file_name}: {ui_file.errorString()}")
@@ -99,9 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.setWindowTitle(WindowProp.TITLE)
         self.ui.setWindowIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_app_icon)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_app_icon)))
         )
         self.ui.setGeometry(
             WindowProp.LEFT, WindowProp.TOP, WindowProp.WIDTH, WindowProp.HEIGHT
@@ -146,15 +146,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.btn_pause_play.clicked.connect(self.player_play)
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)))
         )
+
         self.ui.btn_stop.clicked.connect(self.player_stop)
         self.ui.btn_stop.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_stop)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_stop)))
         )
 
         self.ui.btn_reset.clicked.connect(self.sliders_reset)
@@ -177,16 +174,14 @@ class MainWindow(QtWidgets.QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def albums_build(self) -> None:
+    def albums_build(self) -> List[AudioSetData]:
         """Generate list of available albums from audio collection folder"""
         list_to_be_sorted = []
-        folders = next(os.walk(os.path.join(BASE_PATH, "audioset")))[1]
-        for dir in folders:
+        folders = next(os.walk(Path(BASE_PATH, self.cfg.collection_folder)))[1]
+        for folder in folders:
             try:
                 with open(
-                    os.path.join(
-                        BASE_PATH, self.cfg.collection_folder, dir, "data.json"
-                    ),
+                    Path(BASE_PATH, self.cfg.collection_folder, folder, "data.json"),
                     "r",
                 ) as f:
                     parsed_json = json.load(f)
@@ -197,32 +192,40 @@ class MainWindow(QtWidgets.QMainWindow):
                                 AudioFileData(
                                     channel=int(file["channel"]),
                                     title=file["title"],
-                                    file=os.path.join(
-                                        BASE_PATH,
-                                        self.cfg.collection_folder,
-                                        dir,
-                                        file["file"],
+                                    file=str(
+                                        Path(
+                                            BASE_PATH,
+                                            self.cfg.collection_folder,
+                                            folder,
+                                            file["file"],
+                                        )
                                     ),
                                 )
                             )
                 list_to_be_sorted.append(
-                    AudioSetData(dir=dir, title=parsed_json["title"], files=channels)
+                    AudioSetData(
+                        folder=folder, title=parsed_json["title"], files=channels
+                    )
                 )
             except IOError:
-                print("data.json not found in dir: " + dir)
-            self.albums = sorted(list_to_be_sorted, key=lambda item: item.title)
+                print("data.json not found in folder: " + folder)
+
+        albums = sorted(list_to_be_sorted, key=lambda item: item.title)
+        return albums
 
     def combobox_populate(self) -> None:
         """Populate dropdown list"""
-        self.albums_build()
+        self.albums = self.albums_build()
         for album in self.albums:
             self.ui.select_album.addItem(album.title)
 
         if self.current_folder is not None:
             if self.current_album is None:
-                self.current_album = self.search(key="dir", value=self.current_folder)
+                self.current_album = self.search(
+                    name="folder", keyword=self.current_folder
+                )
 
-            if self.current_album.title is not None:
+            if self.current_album is not None:
                 index = self.ui.select_album.findText(
                     self.current_album.title, QtCore.Qt.MatchFixedString
                 )
@@ -232,23 +235,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def combobox_on_change(self) -> None:
         """Play music after selecting it on dropdown list"""
         selected = self.ui.select_album.currentText()
-        album = self.search(key="title", value=selected)
-        self.current_album = album
-        self.current_folder = album.dir
+        album = self.search(name="title", keyword=selected)
+        if album:
+            self.current_album = album
+            self.current_folder = album.folder
 
-        if self.cfg.auto_play:
-            if pmixer.get_init() is not None:
-                self.player_stop()
-                self.player_play()
+            if self.cfg.auto_play:
+                if pmixer.get_init() is not None:
+                    self.player_stop()
+                    self.player_play()
 
     def player_play(self) -> None:
         # self.sliders_enable()
-        self.ui.setWindowTitle(f"{self.current_album.title} - {WindowProp.TITLE}")
+        if self.current_album:
+            self.ui.setWindowTitle(f"{self.current_album.title} - {WindowProp.TITLE}")
         self.player_status = PlayerStatus.PLAYING
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)))
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_pause)
@@ -282,9 +285,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.pause()
         self.player_status = PlayerStatus.PAUSED
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)))
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_unpause)
@@ -293,9 +294,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.unpause()
         self.player_status = PlayerStatus.PLAYING
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)))
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_pause)
@@ -304,9 +303,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.stop()
         self.player_status = PlayerStatus.STOPPED
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(
-                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
-            )
+            QtGui.QIcon(str(Path(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)))
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_play)
@@ -369,20 +366,28 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.player_status is not None:
                 pmixer.Channel(channel).set_volume(self.position_to_volume(position))
 
-    def search(self, key: Literal["title", "dir"], value=str) -> AudioSetData:
-        """Get AudioSetData using specify keyword"""
+    def search(self, name: str, keyword: str) -> Union[None, AudioSetData]:
+        """
+        name = title or folder
+
+        keyword = keyword
+
+        return AudioSetData
+        """
         try:
-            if key == "title":
+            if name == "title":
                 for item in self.albums:
-                    if item.title == value:
+                    if item.title == keyword:
                         return item
-            elif key == "dir":
+            elif name == "folder":
                 for item in self.albums:
-                    if item.dir == value:
+                    if item.folder == keyword:
                         return item
-            raise NameError("Error")
+            else:
+                return None
+            # raise NameError("Error")
         except NameError:
-            print(f'used key "{key}" not allowed')
+            print(f'used prop name "{name}" not allowed')
             exit()
 
     def alert_message(self, header: str, text: str):
