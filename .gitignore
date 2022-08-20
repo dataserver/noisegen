@@ -88,3 +88,4 @@ test.py
 __app.py
 dist/
 build/
+poetry.lock

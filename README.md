@@ -1,5 +1,5 @@
 # noisegen
-Python program (GUI/PySide2)
+Python program (GUI/PySide6)
 It's just an audio mixer of 10 audio files playing in an infinite loop.  
 I use it to create white noise by mixing 10 different audio channels, each channel with unique
 audio sound :D
@@ -68,7 +68,6 @@ Check data.json file inside the DEMO folder.
 
 
 ## License ##
----
 
 [![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
 
