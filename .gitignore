@@ -78,7 +78,7 @@ yarn-error.log*
 .venv/
 .vscode/
 noisegen/audioset/
-!noisegen/audioset/DEMO/
+!noisegen/audioset/DEMO/*
 __pycache__/
 run.bat
 app1.spec
