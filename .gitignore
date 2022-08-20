@@ -77,9 +77,9 @@ yarn-error.log*
 .ignore/
 .venv/
 .vscode/
-audioset/
+noisegen/audioset/
+!noisegen/audioset/DEMO
 __pycache__/
-!audioset/DEMO
 run.bat
 app1.spec
 .style.yapf
