@@ -2,30 +2,83 @@ import json
 import math
 import os
 import sys
+from dataclasses import dataclass
+from enum import Enum, auto
 from pathlib import Path
 from random import randrange
-from typing import Literal
+from typing import Literal, Optional
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QMessageBox
-
-from src.config import read_config
-from src.data import AudioFileData, AudioSetData, PlayerStatus, WindowProp
 
 # must be set before IMPORT
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from pygame import mixer as pmixer
 
 MAX_NUM_CHANNELS = 10  # Number of channels in GUI mixer
+BASE_PATH = Path(__file__).parent
+
+
+@dataclass
+class Config:
+    svg_path: str
+    svg_btn_pause: str
+    svg_btn_play: str
+    svg_btn_stop: str
+    svg_app_icon: str
+    collection_folder: str
+    default_album_folder: str
+    default_channel_volume: int
+    auto_play: bool
+
+
+def read_config(config_file: str) -> Config:
+    with open(config_file) as file:
+        data = json.load(file)
+        return Config(**data)
+
+
+@dataclass
+class AudioSetData:
+    title: str
+    dir: str
+    files: Optional[list]
+
+
+@dataclass
+class AudioFileData:
+    channel: int
+    title: str
+    file: str
+
+
+@dataclass
+class PlayerStatus(Enum):
+    """Player status"""
+
+    PLAYING = auto()
+    STOPPED = auto()
+    PAUSED = auto()
+    IDDLE = auto()
+
+
+@dataclass
+class WindowProp:
+    """GUI props"""
+
+    TITLE = "Noise Generator"
+    TOP = 100
+    LEFT = 100
+    WIDTH = 480
+    HEIGHT = 300
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.cfg = read_config("src/config.json")
-        ui_file_name = "src/gui.ui"
+        self.cfg = read_config(os.path.join(BASE_PATH, "config.json"))
+        ui_file_name = os.path.join(BASE_PATH, "resources", "gui.ui")
         ui_file = QtCore.QFile(ui_file_name)
         if not ui_file.open(QtCore.QIODevice.ReadOnly):
             print(f"Cannot open {ui_file_name}: {ui_file.errorString()}")
@@ -46,7 +99,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.setWindowTitle(WindowProp.TITLE)
         self.ui.setWindowIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_app_icon}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_app_icon)
+            )
         )
         self.ui.setGeometry(
             WindowProp.LEFT, WindowProp.TOP, WindowProp.WIDTH, WindowProp.HEIGHT
@@ -91,11 +146,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.btn_pause_play.clicked.connect(self.player_play)
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_play}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
+            )
         )
         self.ui.btn_stop.clicked.connect(self.player_stop)
         self.ui.btn_stop.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_stop}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_stop)
+            )
         )
 
         self.ui.btn_reset.clicked.connect(self.sliders_reset)
@@ -121,10 +180,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def albums_build(self) -> None:
         """Generate list of available albums from audio collection folder"""
         list_to_be_sorted = []
-        folders = next(os.walk("audioset"))[1]
+        folders = next(os.walk(os.path.join(BASE_PATH, "audioset")))[1]
         for dir in folders:
             try:
-                with open(f"{self.cfg.collection_folder}{dir}/data.json", "r") as f:
+                with open(
+                    os.path.join(
+                        BASE_PATH, self.cfg.collection_folder, dir, "data.json"
+                    ),
+                    "r",
+                ) as f:
                     parsed_json = json.load(f)
                     channels = []
                     if parsed_json is not None:
@@ -133,7 +197,12 @@ class MainWindow(QtWidgets.QMainWindow):
                                 AudioFileData(
                                     channel=int(file["channel"]),
                                     title=file["title"],
-                                    file=f"{self.cfg.collection_folder}{dir}/{file['file']}",
+                                    file=os.path.join(
+                                        BASE_PATH,
+                                        self.cfg.collection_folder,
+                                        dir,
+                                        file["file"],
+                                    ),
                                 )
                             )
                 list_to_be_sorted.append(
@@ -177,7 +246,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setWindowTitle(f"{self.current_album.title} - {WindowProp.TITLE}")
         self.player_status = PlayerStatus.PLAYING
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_pause}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)
+            )
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_pause)
@@ -211,7 +282,9 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.pause()
         self.player_status = PlayerStatus.PAUSED
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_play}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
+            )
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_unpause)
@@ -220,7 +293,9 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.unpause()
         self.player_status = PlayerStatus.PLAYING
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_pause}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_pause)
+            )
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_pause)
@@ -229,7 +304,9 @@ class MainWindow(QtWidgets.QMainWindow):
         pmixer.stop()
         self.player_status = PlayerStatus.STOPPED
         self.ui.btn_pause_play.setIcon(
-            QtGui.QIcon(f"{self.cfg.svg_path}{self.cfg.svg_btn_play}")
+            QtGui.QIcon(
+                os.path.join(BASE_PATH, self.cfg.svg_path, self.cfg.svg_btn_play)
+            )
         )
         self.ui.btn_pause_play.clicked.disconnect()
         self.ui.btn_pause_play.clicked.connect(self.player_play)

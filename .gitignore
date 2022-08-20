@@ -87,3 +87,5 @@ app1.spec
 workspace.code-workspace
 test.py
 __app.py
+dist/
+build/
