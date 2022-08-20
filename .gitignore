@@ -81,7 +81,6 @@ audioset/
 __pycache__/
 !audioset/DEMO
 run.bat
-app.spec
 app1.spec
 .style.yapf
 workspace.code-workspace
